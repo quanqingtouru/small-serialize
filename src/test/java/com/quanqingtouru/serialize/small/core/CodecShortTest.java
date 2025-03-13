@@ -1,13 +1,10 @@
 package com.quanqingtouru.serialize.small.core;
 
+public class CodecShortTest extends CodecTestBase {
 
-import com.quanqingtouru.serialize.small.util.CodecUtil;
-
-public class CodecBooleanTest extends CodecTestBase {
-
-    Boolean a = null;
-    Boolean b = true;
-    Boolean c = false;
+    short a = Short.MAX_VALUE;
+    short b = Short.MIN_VALUE;
+    short c = 0;
 
     public void testA() {
         check(a);
@@ -21,9 +18,8 @@ public class CodecBooleanTest extends CodecTestBase {
         check(c);
     }
 
-
     @Override
     protected Codec<?> prepareCodec() {
-        return new CodecBoolean();
+        return new CodecShort();
     }
 }

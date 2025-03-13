@@ -1,13 +1,11 @@
 package com.quanqingtouru.serialize.small.core;
 
 
-import com.quanqingtouru.serialize.small.util.CodecUtil;
+public class CodecByteTest extends CodecTestBase {
 
-public class CodecBooleanTest extends CodecTestBase {
-
-    Boolean a = null;
-    Boolean b = true;
-    Boolean c = false;
+    Byte a = 0;
+    Byte b = Byte.MAX_VALUE;
+    Byte c = Byte.MIN_VALUE;
 
     public void testA() {
         check(a);
@@ -21,9 +19,8 @@ public class CodecBooleanTest extends CodecTestBase {
         check(c);
     }
 
-
     @Override
     protected Codec<?> prepareCodec() {
-        return new CodecBoolean();
+        return new CodecByte();
     }
 }
