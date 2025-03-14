@@ -90,20 +90,17 @@ public class CodecUtil {
         return b2 + (b3 << 8) + (b4 << 16) + (b5 << 24);
     }
 
-    public static String check(Object value, Codec<?> codec) {
-        Object decode = null;
-        try {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            codec.encodeObject(value, outputStream);
-            decode = codec.decode(new ByteArrayInputStream(outputStream.toByteArray()));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    public static boolean same(byte[] src, byte[] dest) {
+        if (src.length != dest.length) {
+            return false;
         }
 
-        if (value == null) {
-            return decode == null ? "" : "null != " + decode;
+        for (int i = 0; i < src.length; i++) {
+            if (src[i] != dest[i]) {
+                return false;
+            }
         }
 
-        return value.equals(decode) ? "" : value + " != " + decode;
+        return true;
     }
 }
