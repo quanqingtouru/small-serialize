@@ -35,44 +35,26 @@ public class SmallSerialize {
     }
 
     /**
-     * 此种序类化方式，反序列化的时候需要指定类型
+     * 序列化，包含类型信息，用15位来表示
      */
     public static byte[] serialize(Object object) throws IOException, IllegalAccessException {
-        if (object == null) {
-            return new byte[]{0, 0};
-        } else {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            serialize(object, byteArrayOutputStream);
-            return byteArrayOutputStream.toByteArray();
-        }
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        serialize(object, byteArrayOutputStream);
+        return byteArrayOutputStream.toByteArray();
     }
 
     /**
-     * 完整序列化，包含类型信息，用15位来表示，反序列化时不需要指定类型
-     */
-    public static byte[] fullSerialize(Object object) throws IOException, IllegalAccessException {
-        if (object == null) {
-            return new byte[]{0, 0};
-        } else {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            Class<?> aClass = object.getClass();
-            short type = getType(aClass);
-            DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
-            dataOutputStream.writeShort((type << 1) | 1);
-            serialize(object, byteArrayOutputStream);
-            return byteArrayOutputStream.toByteArray();
-        }
-    }
-
-    /**
-     * 第一个字节用以表示是否为null
+     * 前两个字节用以表示是否为null|具体的类型
      */
     public static void serialize(Object object, ByteArrayOutputStream dataStream) throws IOException, IllegalAccessException {
         if (object == null) {
-            dataStream.write(0);
+            dataStream.write(new byte[]{0, 0});
         } else {
-            dataStream.write(1);
             Class<?> aClass = object.getClass();
+            short type = getType(aClass);
+            DataOutputStream dataOutputStream = new DataOutputStream(dataStream);
+            dataOutputStream.writeShort((type << 1) | 1);
+
             Codec<?> codec = getCodec(aClass);
             if (codec != null) {
                 codec.encodeObject(object, dataStream);
@@ -89,14 +71,7 @@ public class SmallSerialize {
     @SuppressWarnings("unchecked")
     public static <T> T deserialize(byte[] bytes) throws Exception {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
-        DataInputStream dataInputStream = new DataInputStream(inputStream);
-        short read = dataInputStream.readShort();
-        if (read == 0) {
-            return null;
-        } else {
-            Class<?> aClass = getClass((short) (read >> 1));
-            return (T) deserialize(inputStream, aClass);
-        }
+        return (T) deserialize(inputStream, null);
     }
 
     public static <T> T deserialize(byte[] bytes, Class<T> clazz) throws Exception {
@@ -106,17 +81,23 @@ public class SmallSerialize {
 
     @SuppressWarnings("all")
     private static <T> T deserialize(ByteArrayInputStream inputStream, Class<T> clazz) throws Exception {
-        int read = inputStream.read();
+        DataInputStream dataInputStream = new DataInputStream(inputStream);
+        short read = dataInputStream.readShort();
         if (read == 0) {
             return null;
         } else {
-            T object = clazz.newInstance();
-            List<Field> fields = getAllFields(clazz);
+            Class<?> aClass = clazz;
+            if (clazz == null) {
+                aClass = getClass((short) (read >> 1));
+            }
+
+            Object object = aClass.newInstance();
+            List<Field> fields = getAllFields(aClass);
             for (Field field : fields) {
                 readField(field, object, inputStream);
             }
 
-            return object;
+            return (T) object;
         }
     }
 
@@ -172,7 +153,8 @@ public class SmallSerialize {
     }
 
     private static short getType(Class<?> aClass) {
-        return classType.get(aClass);
+        Short value = classType.get(aClass);
+        return value == null ? 0 : value;
     }
 
     private static Class<?> getClass(short type) {

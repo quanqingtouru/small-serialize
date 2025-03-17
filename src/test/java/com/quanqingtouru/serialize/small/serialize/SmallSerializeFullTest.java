@@ -15,7 +15,7 @@ public class SmallSerializeFullTest extends TestCase {
     public void testNullObject() throws Exception {
         SimpleObject simpleObject = null;
 
-        byte[] serialize = SmallSerialize.fullSerialize(simpleObject);
+        byte[] serialize = SmallSerialize.serialize(simpleObject);
         SimpleObject deserialize = SmallSerialize.deserialize(serialize);
         byte[] destination = SmallSerialize.serialize(deserialize);
 
@@ -26,9 +26,9 @@ public class SmallSerializeFullTest extends TestCase {
     public void testSimpleObjectWithNullField() throws Exception {
         SimpleObject simpleObject = new SimpleObject();
 
-        byte[] serialize = SmallSerialize.fullSerialize(simpleObject);
+        byte[] serialize = SmallSerialize.serialize(simpleObject);
         SimpleObject deserialize = SmallSerialize.deserialize(serialize);
-        byte[] destination = SmallSerialize.fullSerialize(deserialize);
+        byte[] destination = SmallSerialize.serialize(deserialize);
 
         boolean same = CodecUtil.same(serialize, destination);
         assertTrue(same);
@@ -39,9 +39,9 @@ public class SmallSerializeFullTest extends TestCase {
         simpleObject.setAge((byte) 21);
         simpleObject.setName("a");
 
-        byte[] serialize = SmallSerialize.fullSerialize(simpleObject);
+        byte[] serialize = SmallSerialize.serialize(simpleObject);
         SimpleObject deserialize = SmallSerialize.deserialize(serialize);
-        byte[] destination = SmallSerialize.fullSerialize(deserialize);
+        byte[] destination = SmallSerialize.serialize(deserialize);
 
         boolean same = CodecUtil.same(serialize, destination);
         assertTrue(same);

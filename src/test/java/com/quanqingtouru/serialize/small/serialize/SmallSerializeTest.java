@@ -7,6 +7,10 @@ import junit.framework.TestCase;
 
 public class SmallSerializeTest extends TestCase {
 
+    @Override
+    protected void setUp() throws Exception {
+//        SmallSerialize.registerClass((short) 1, SimpleObject.class);
+    }
 
     public void testNullObject() throws Exception {
         SimpleObject simpleObject = null;
