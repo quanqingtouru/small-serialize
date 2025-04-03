@@ -37,7 +37,7 @@ public class SmallSerialize {
     /**
      * 序列化，包含类型信息，用15位来表示
      */
-    public static byte[] serialize(Object object) throws IOException, IllegalAccessException {
+    public static byte[] serialize(Object object) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         serialize(object, byteArrayOutputStream);
         return byteArrayOutputStream.toByteArray();
@@ -46,37 +46,48 @@ public class SmallSerialize {
     /**
      * 前两个字节用以表示是否为null|具体的类型
      */
-    public static void serialize(Object object, ByteArrayOutputStream dataStream) throws IOException, IllegalAccessException {
-        if (object == null) {
-            dataStream.write(new byte[]{0, 0});
-        } else {
-            Class<?> aClass = object.getClass();
-            short type = getType(aClass);
-            DataOutputStream dataOutputStream = new DataOutputStream(dataStream);
-            dataOutputStream.writeShort((type << 1) | 1);
+    public static void serialize(Object object, OutputStream dataStream) {
+        try {
+            if (object == null) {
+                dataStream.write(new byte[]{0, 0});
+            } else {
+                Class<?> aClass = object.getClass();
+                short type = getType(aClass);
+                DataOutputStream dataOutputStream = new DataOutputStream(dataStream);
+                dataOutputStream.writeShort((type << 1) | 1);
 
-            Codec<?> codec = getCodec(aClass);
-            if (codec != null) {
-                codec.encodeObject(object, dataStream);
-                return;
-            }
+                Codec<?> codec = getCodec(aClass);
+                if (codec != null) {
+                    codec.encodeObject(object, dataStream);
+                    return;
+                }
 
-            List<Field> fields = getAllFields(aClass);
-            for (Field field : fields) {
-                writeField(field, object, dataStream);
+                List<Field> fields = getAllFields(aClass);
+                for (Field field : fields) {
+                    writeField(field, object, dataStream);
+                }
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T> T deserialize(byte[] bytes) throws Exception {
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
-        return (T) deserialize(inputStream, null);
+    public static <T> T deserialize(byte[] bytes) {
+        try {
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+            return deserialize(inputStream, null);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public static <T> T deserialize(byte[] bytes, Class<T> clazz) throws Exception {
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
-        return deserialize(inputStream, clazz);
+    public static <T> T deserialize(byte[] bytes, Class<T> clazz) {
+        try {
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+            return deserialize(inputStream, clazz);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @SuppressWarnings("all")
@@ -101,11 +112,16 @@ public class SmallSerialize {
         }
     }
 
-    private static void writeField(Field field, Object object, ByteArrayOutputStream outputStream) throws IllegalAccessException, IOException {
+    private static void writeField(Field field, Object object, OutputStream outputStream) throws IOException {
         Class<?> type = field.getType();
 
         Codec<?> codec = getCodec(type);
-        Object filedValue = field.get(object);
+        Object filedValue = null;
+        try {
+            filedValue = field.get(object);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
         if (filedValue == null) {
             outputStream.write(0);
         } else {

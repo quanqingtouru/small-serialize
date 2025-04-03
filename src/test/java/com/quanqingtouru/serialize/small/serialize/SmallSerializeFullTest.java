@@ -1,5 +1,6 @@
 package com.quanqingtouru.serialize.small.serialize;
 
+import com.alibaba.fastjson.JSONObject;
 import com.quanqingtouru.serialize.small.SmallSerialize;
 import com.quanqingtouru.serialize.small.util.CodecUtil;
 import junit.framework.TestCase;
@@ -40,6 +41,11 @@ public class SmallSerializeFullTest extends TestCase {
         simpleObject.setName("a");
 
         byte[] serialize = SmallSerialize.serialize(simpleObject);
+
+        System.out.println(serialize.length);
+        int length = JSONObject.toJSONString(simpleObject).getBytes().length;
+        System.out.println(length);
+
         SimpleObject deserialize = SmallSerialize.deserialize(serialize);
         byte[] destination = SmallSerialize.serialize(deserialize);
 
