@@ -158,6 +158,11 @@ public class SmallSerialize {
             Field[] fields = clazz.getDeclaredFields();
             List<Field> allFields = new ArrayList<>(fields.length);
             allFields.addAll(Arrays.asList(fields));
+
+            for (Class<?> superclass = clazz.getSuperclass(); superclass != null; superclass = superclass.getSuperclass()) {
+                allFields.addAll(0, Arrays.asList(superclass.getDeclaredFields()));
+            }
+
             allFields.sort(Comparator.comparing(Field::getName));
             for (Field field : allFields) {
                 field.setAccessible(true);
