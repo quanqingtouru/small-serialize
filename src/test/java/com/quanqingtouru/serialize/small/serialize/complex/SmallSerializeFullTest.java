@@ -6,6 +6,8 @@ import com.quanqingtouru.serialize.small.serialize.SimpleObject;
 import com.quanqingtouru.serialize.small.util.CodecUtil;
 import junit.framework.TestCase;
 
+import java.io.InputStream;
+
 
 public class SmallSerializeFullTest extends TestCase {
 

@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 
 public class SmallSerialize {
@@ -12,7 +14,7 @@ public class SmallSerialize {
     protected static final HashMap<Short, Class<?>> typeClass = new HashMap<>();
     protected static final HashMap<Class<?>, Short> classType = new HashMap<>();
     protected static final HashMap<Class<?>, Codec<?>> codecs = new HashMap<>();
-    protected static final HashMap<String, List<Field>> fieldCache = new HashMap<>();
+    protected static final HashMap<String, List<FieldWithType>> fieldCache = new HashMap<>();
 
     static {
         registerCodec(new CodecBoolean(), Boolean.class, boolean.class);
@@ -63,8 +65,8 @@ public class SmallSerialize {
                     return;
                 }
 
-                List<Field> fields = getAllFields(aClass);
-                for (Field field : fields) {
+                List<FieldWithType> fields = getAllFields(aClass);
+                for (FieldWithType field : fields) {
                     writeField(field, object, dataStream);
                 }
             }
@@ -104,8 +106,8 @@ public class SmallSerialize {
             }
 
             Object object = aClass.newInstance();
-            List<Field> fields = getAllFields(aClass);
-            for (Field field : fields) {
+            List<FieldWithType> fields = getAllFields(aClass);
+            for (FieldWithType field : fields) {
                 readField(field, object, inputStream);
             }
 
@@ -113,10 +115,10 @@ public class SmallSerialize {
         }
     }
 
-    private static void writeField(Field field, Object object, OutputStream outputStream) throws IOException {
+    private static void writeField(FieldWithType fieldWithType, Object object, OutputStream outputStream) throws IOException {
         Object filedValue = null;
         try {
-            filedValue = field.get(object);
+            filedValue = fieldWithType.field.get(object);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -124,7 +126,7 @@ public class SmallSerialize {
             outputStream.write(0);
         } else {
             outputStream.write(1);
-            Class<?> type = filedValue.getClass();
+            Class<?> type = fieldWithType.type;
             Codec<?> codec = getCodec(type);
 
             if (codec != null) {
@@ -135,12 +137,12 @@ public class SmallSerialize {
         }
     }
 
-    private static void readField(Field field, Object object, ByteArrayInputStream inputStream) throws Exception {
+    private static void readField(FieldWithType fieldWithType, Object object, ByteArrayInputStream inputStream) throws Exception {
         int read = inputStream.read();
         if (read == 0) {
-            field.set(object, null);
+            fieldWithType.field.set(object, null);
         } else {
-            Class<?> type = field.getType();
+            Class<?> type = fieldWithType.type;
             Codec<?> codec = getCodec(type);
             Object fieldValue;
             if (codec != null) {
@@ -148,26 +150,44 @@ public class SmallSerialize {
             } else {
                 fieldValue = deserialize(inputStream, type);
             }
-            field.set(object, fieldValue);
+            fieldWithType.field.set(object, fieldValue);
         }
     }
 
 
-    private static List<Field> getAllFields(Class<?> clazz) {
+    private static List<FieldWithType> getAllFields(Class<?> clazz) {
         String name = clazz.getName();
         if (!fieldCache.containsKey(name)) {
             Field[] fields = clazz.getDeclaredFields();
-            List<Field> allFields = new ArrayList<>(fields.length);
-            allFields.addAll(Arrays.asList(fields));
-
-            Class<?> superclass = clazz.getSuperclass();
-            if (superclass != null) {
-                Field[] parentFields = superclass.getDeclaredFields();
-                allFields.addAll(Arrays.asList(parentFields));
+            List<FieldWithType> allFields = new ArrayList<>(fields.length + 1);
+            for (Field field : fields) {
+                allFields.add(new FieldWithType(field, field.getType()));
             }
 
-            allFields.sort(Comparator.comparing(Field::getName));
-            for (Field field : allFields) {
+            Class<?> superclass = clazz.getSuperclass();
+            Type genericSuperclass = clazz.getGenericSuperclass();
+            Class<?> genericType = null;
+            if (genericSuperclass instanceof ParameterizedType parameterizedType) {
+                Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+                if (actualTypeArguments.length == 1) {
+                    genericType = (Class<?>) actualTypeArguments[0];
+                }
+            }
+
+            if (superclass != null) {
+                Field[] parentFields = superclass.getDeclaredFields();
+                for (Field field : parentFields) {
+                    if (field.getGenericType().getTypeName().length() == 1) {
+                        allFields.add(new FieldWithType(field, genericType));
+                    } else {
+                        allFields.add(new FieldWithType(field, field.getType()));
+                    }
+
+                }
+            }
+
+            allFields.sort(Comparator.comparing(FieldWithType::getName));
+            for (FieldWithType field : allFields) {
                 field.setAccessible(true);
             }
             fieldCache.put(name, allFields);
@@ -190,9 +210,17 @@ public class SmallSerialize {
     }
 
     @AllArgsConstructor
-    private static class FieldWithType {
+    public static class FieldWithType {
         private final Field field;
         private final Class<?> type;
+
+        public String getName() {
+            return field.getName();
+        }
+
+        public void setAccessible(boolean accessible) {
+            field.setAccessible(accessible);
+        }
     }
 
 
