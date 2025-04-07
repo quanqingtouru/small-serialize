@@ -1,6 +1,7 @@
 package com.quanqingtouru.serialize.small;
 
 import com.quanqingtouru.serialize.small.core.*;
+import lombok.AllArgsConstructor;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -113,9 +114,6 @@ public class SmallSerialize {
     }
 
     private static void writeField(Field field, Object object, OutputStream outputStream) throws IOException {
-        Class<?> type = field.getType();
-
-        Codec<?> codec = getCodec(type);
         Object filedValue = null;
         try {
             filedValue = field.get(object);
@@ -126,6 +124,9 @@ public class SmallSerialize {
             outputStream.write(0);
         } else {
             outputStream.write(1);
+            Class<?> type = filedValue.getClass();
+            Codec<?> codec = getCodec(type);
+
             if (codec != null) {
                 codec.encodeObject(filedValue, outputStream);
             } else {
@@ -159,8 +160,10 @@ public class SmallSerialize {
             List<Field> allFields = new ArrayList<>(fields.length);
             allFields.addAll(Arrays.asList(fields));
 
-            for (Class<?> superclass = clazz.getSuperclass(); superclass != null; superclass = superclass.getSuperclass()) {
-                allFields.addAll(0, Arrays.asList(superclass.getDeclaredFields()));
+            Class<?> superclass = clazz.getSuperclass();
+            if (superclass != null) {
+                Field[] parentFields = superclass.getDeclaredFields();
+                allFields.addAll(Arrays.asList(parentFields));
             }
 
             allFields.sort(Comparator.comparing(Field::getName));
@@ -185,5 +188,12 @@ public class SmallSerialize {
     private static Codec<?> getCodec(Class<?> aClass) {
         return codecs.get(aClass);
     }
+
+    @AllArgsConstructor
+    private static class FieldWithType {
+        private final Field field;
+        private final Class<?> type;
+    }
+
 
 }
