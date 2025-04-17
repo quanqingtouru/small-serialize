@@ -5,7 +5,7 @@ public class CodecStringTest extends CodecTestBase {
     String a = null;
     String b = "";
     String c = "hello";
-    String d = "*".repeat(65525);
+    String d = repeat("*", 65525);
 
     public void testA() {
         check(a);
@@ -26,5 +26,13 @@ public class CodecStringTest extends CodecTestBase {
     @Override
     protected Codec<?> prepareCodec() {
         return new CodecString();
+    }
+
+    public String repeat(String str, int count) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < count; i++) {
+            sb.append(str);
+        }
+        return sb.toString();
     }
 }

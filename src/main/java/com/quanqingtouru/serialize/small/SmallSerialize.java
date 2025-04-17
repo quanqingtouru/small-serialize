@@ -167,7 +167,8 @@ public class SmallSerialize {
             Class<?> superclass = clazz.getSuperclass();
             Type genericSuperclass = clazz.getGenericSuperclass();
             Class<?> genericType = null;
-            if (genericSuperclass instanceof ParameterizedType parameterizedType) {
+            if (genericSuperclass instanceof ParameterizedType ) {
+                ParameterizedType parameterizedType = (ParameterizedType) genericSuperclass;
                 Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
                 if (actualTypeArguments.length == 1) {
                     genericType = (Class<?>) actualTypeArguments[0];

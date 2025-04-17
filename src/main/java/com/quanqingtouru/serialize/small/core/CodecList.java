@@ -6,6 +6,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CodecList extends Codec<List<?>> {
@@ -31,7 +32,7 @@ public class CodecList extends Codec<List<?>> {
             return null;
         } else {
 
-            return List.of();
+            return new ArrayList<>();
         }
     }
 }

@@ -8,7 +8,11 @@ import java.util.Objects;
 public class CodecByte extends Codec<Byte> {
     @Override
     public void encode(Byte object, OutputStream outputStream) throws IOException {
-        outputStream.write(Objects.requireNonNullElse(object, (byte) 0));
+        if (object == null) {
+            outputStream.write(0);
+        } else {
+            outputStream.write(object);
+        }
     }
 
     @Override
