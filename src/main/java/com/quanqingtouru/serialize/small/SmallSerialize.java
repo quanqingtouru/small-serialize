@@ -167,7 +167,7 @@ public class SmallSerialize {
             Class<?> superclass = clazz.getSuperclass();
             Type genericSuperclass = clazz.getGenericSuperclass();
             Class<?> genericType = null;
-            if (genericSuperclass instanceof ParameterizedType ) {
+            if (genericSuperclass instanceof ParameterizedType) {
                 ParameterizedType parameterizedType = (ParameterizedType) genericSuperclass;
                 Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
                 if (actualTypeArguments.length == 1) {
@@ -178,7 +178,8 @@ public class SmallSerialize {
             if (superclass != null) {
                 Field[] parentFields = superclass.getDeclaredFields();
                 for (Field field : parentFields) {
-                    if (field.getGenericType().getTypeName().length() == 1) {
+                    String typeName = field.getGenericType() + "";
+                    if (typeName.length() == 1) {
                         allFields.add(new FieldWithType(field, genericType));
                     } else {
                         allFields.add(new FieldWithType(field, field.getType()));
