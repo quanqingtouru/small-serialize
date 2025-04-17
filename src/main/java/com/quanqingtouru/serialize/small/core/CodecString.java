@@ -34,7 +34,10 @@ public class CodecString extends Codec<String> {
 
         int length = stream2Length(inputStream, b1);
 
-        return new String(inputStream.readNBytes(length));
+        byte[] bytes = new byte[length];
+        int read = inputStream.read(bytes);
+
+        return new String(bytes);
     }
 
 }

@@ -1,6 +1,5 @@
 package com.quanqingtouru.serialize.small.serialize.complex;
 
-import com.alibaba.fastjson.JSONObject;
 import com.quanqingtouru.serialize.small.SmallSerialize;
 import com.quanqingtouru.serialize.small.serialize.SimpleObject;
 import com.quanqingtouru.serialize.small.util.CodecUtil;
