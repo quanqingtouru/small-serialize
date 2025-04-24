@@ -6,6 +6,7 @@ public class CodecStringTest extends CodecTestBase {
     String b = "";
     String c = "hello";
     String d = repeat("*", 65525);
+    String e = repeat("*", 67738);
 
     public void testA() {
         check(a);
@@ -21,6 +22,10 @@ public class CodecStringTest extends CodecTestBase {
 
     public void testD() {
         check(d);
+    }
+
+    public void testE() {
+        check(e);
     }
 
     @Override

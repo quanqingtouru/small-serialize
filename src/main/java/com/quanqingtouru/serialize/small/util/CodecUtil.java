@@ -20,13 +20,13 @@ public class CodecUtil {
         } else if (length < (1 << 8)) {
             outputStream.write(1 | b0);
             outputStream.write(length);
-        } else if (length < 1 << 17) {
+        } else if (length < 1 << 16) {
             outputStream.write(2 | b0);
             int b1 = length & 0xff;
             int b2 = length >>> 8;
             outputStream.write(b1);
             outputStream.write(b2);
-        } else if (length < 1 << 25) {
+        } else if (length < 1 << 24) {
             outputStream.write(3 | b0);
             int b1 = length & 0xff;
             int b2 = length >>> 8;
