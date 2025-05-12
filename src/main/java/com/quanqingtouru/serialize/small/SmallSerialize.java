@@ -26,6 +26,7 @@ public class SmallSerialize {
 
         registerCodec(new CodecString(), String.class);
         registerCodec(new CodecBigDecimal(), BigDecimal.class);
+        registerCodec(new CodecList(), ArrayList.class);
     }
 
     public static void registerCodec(Codec<?> codec, Class<?>... classes) {
