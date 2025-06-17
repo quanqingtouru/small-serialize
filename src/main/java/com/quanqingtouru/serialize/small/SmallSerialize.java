@@ -178,7 +178,7 @@ public class SmallSerialize {
                 }
             }
 
-            if (superclass != null) {
+            if (superclass != null && !superclass.equals(Object.class)) {
                 Field[] parentFields = superclass.getDeclaredFields();
                 for (Field field : parentFields) {
                     String typeName = field.getGenericType() + "";
